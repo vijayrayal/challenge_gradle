@@ -1,0 +1,71 @@
+<configuration info="true" scan="true" scanPeriod="10 seconds">
+
+    <property name="ROOT" value="../logs" />
+
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <springProfile name="dev">
+        <root level="info">
+            <appender-ref ref="STDOUT" />
+        </root>
+    </springProfile>
+
+    <appender name="challengelog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ROOT}/challenge-static-data.log</file> 
+               
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+                
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${ROOT}/challenge-%d{yyyy-MM-dd_}.%i.log.gz</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>60</maxHistory>
+	    <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>        
+    </appender>
+    
+   
+       <appender name="springlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ROOT}/springlog.log</file> 
+               
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+                
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${ROOT}/springlog-%d{yyyy-MM-dd_}.%i.log.gz</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>60</maxHistory>
+	    <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>        
+    </appender>  
+    
+    
+	<logger name="org.springframework.web" additivity="false" level="trace">
+	    <appender-ref ref="STDOUT" />
+	    <appender-ref ref="springlog"/>
+	</logger>
+	<logger name="com.zaxxer.hikari" level="trace" additivity="false">
+        <appender-ref ref="STDOUT"/>
+	    <appender-ref ref="springlog"/>
+    </logger>	
+    
+    <logger name="com.dws.challenge" additivity="false" level="trace">
+    	<appender-ref ref="STDOUT" />
+    	<appender-ref ref="challengelog"/>
+	</logger>
+	<logger name="org.hibernate.SQL" level="trace" additivity="false">
+    	<appender-ref ref="springlog" />
+	</logger>
+    
+</configuration>
