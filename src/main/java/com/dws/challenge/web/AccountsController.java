@@ -35,12 +35,10 @@ public class AccountsController {
 	private static final Logger log = LoggerFactory.getLogger(AccountsController.class);
 
 	private final AccountsService accountsService;
-	private final NotificationService notificationService;
 
 	@Autowired
-	public AccountsController(AccountsService accountsService, NotificationService notificationService) {
+	public AccountsController(AccountsService accountsService) {
 		this.accountsService = accountsService;
-		this.notificationService = notificationService;
 	}
 
 	@PostMapping(value = "/createAccount")
@@ -65,35 +63,11 @@ public class AccountsController {
 	@PostMapping(value = "/transfer")
 	public ResponseEntity<Boolean> transferAmount(@RequestBody TransferAccountModel model) {
 		log.info("Transfer Accounts. {}", model);
-		// If Accounts are same then throw validation.
-		if (StringUtils.equals(model.getAccountFromId(), model.getAccountToId())) {
-			throw new GenericChanllengeException(ChanllengeConstants.SAME_ACCT);
-		}
-		// If Amount is greater or equal to zero then throw validation
-		if (model.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-			throw new GenericChanllengeException(ChanllengeConstants.AMT_GR_THAN_ZERO);
-		}
-		// Get account details from service.
-		Account fromAccount = accountsService.getAccount(model.getAccountFromId());
-		// If from account is not valid then throw validation.
-		if (fromAccount == null) {
-			throw new GenericChanllengeException("From " + ChanllengeConstants.NO_ACCT_EXISTS);
-		}
-		// Get destination account details from service.
-		Account toAccount = accountsService.getAccount(model.getAccountToId());
-		// If destination account is not valid then throw validation.
-		if (toAccount == null) {
-			throw new GenericChanllengeException("To " + ChanllengeConstants.NO_ACCT_EXISTS);
-		}
-		// If source account end up with negative balance then throw validation.
-		if (fromAccount.getBalance().subtract(model.getAmount()).compareTo(BigDecimal.ZERO) < 0) {
-			throw new GenericChanllengeException(ChanllengeConstants.ACCT_END_UP_NEGATIVE);
-		}
+		// validate model data
+		accountsService.validateTransferModel(model);
 		// call transfer amount service
-		if (accountsService.transferAmountBetweenAccounts(fromAccount, toAccount, model.getAmount())) {
+		if (accountsService.transferAmountAndNotifyAccounts(model)) {
 			// Sending notification to from Account and to account via notification service.
-			notificationService.notifyAboutTransfer(fromAccount, model.getAmount() + " Amount Transferred Sucessfully");
-			notificationService.notifyAboutTransfer(toAccount, model.getAmount() + " Amount Received");
 			return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
 		}
 		return new ResponseEntity<>(Boolean.FALSE, HttpStatus.OK);
