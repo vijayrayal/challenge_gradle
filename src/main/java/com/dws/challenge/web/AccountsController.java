@@ -1,10 +1,7 @@
 package com.dws.challenge.web;
 
-import java.math.BigDecimal;
-
 import javax.validation.Valid;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dws.challenge.common.ChanllengeConstants;
 import com.dws.challenge.domain.Account;
 import com.dws.challenge.exception.DuplicateAccountIdException;
-import com.dws.challenge.exception.GenericChanllengeException;
 import com.dws.challenge.model.TransferAccountModel;
 import com.dws.challenge.service.AccountsService;
-import com.dws.challenge.service.NotificationService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,10 +57,9 @@ public class AccountsController {
 	@PostMapping(value = "/transfer")
 	public ResponseEntity<Boolean> transferAmount(@RequestBody TransferAccountModel model) {
 		log.info("Transfer Accounts. {}", model);
-		// validate model data
-		accountsService.validateTransferModel(model);
+		// validate model data and
 		// call transfer amount service
-		if (accountsService.transferAmountAndNotifyAccounts(model)) {
+		if (accountsService.validateTransferAmountAndNotifyAccounts(model)) {
 			// Sending notification to from Account and to account via notification service.
 			return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
 		}

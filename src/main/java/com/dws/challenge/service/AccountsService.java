@@ -37,34 +37,8 @@ public class AccountsService {
 		return this.accountsRepository.getAccount(accountId);
 	}
 
-	public Boolean transferAmountAndNotifyAccounts(TransferAccountModel model) {
-		Account fromAccount = getAccount(model.getAccountFromId());
-		Account toAccount = getAccount(model.getAccountToId());
-		// Deducting amount from account and call update account.
-		fromAccount.setBalance(getBalanceFromAccount(fromAccount).subtract(model.getAmount()));
-		this.accountsRepository.updateAccount(fromAccount);
-		// Deducting amount to account and call update account.
-		toAccount.setBalance(getBalanceFromAccount(toAccount).add(model.getAmount()));
-		this.accountsRepository.updateAccount(toAccount);
-		//Send notifications between accounts.
-		notifyAccounts(fromAccount, toAccount, model.getAmount());
-		return Boolean.TRUE;
-	}
-
-	
-	private BigDecimal getBalanceFromAccount(Account account) {
-		BigDecimal balance = BigDecimal.ZERO;
-		ReentrantLock lock = new ReentrantLock();
-		lock.lock();
-		try {
-			balance = account.getBalance();
-		} finally {
-			lock.unlock();
-		}
-		return balance;
-	}
-
-	public void validateTransferModel(TransferAccountModel model) {
+	public Boolean validateTransferAmountAndNotifyAccounts(TransferAccountModel model) {
+		// validate model
 		// If Accounts are same then throw validation.
 		if (StringUtils.equals(model.getAccountFromId(), model.getAccountToId())) {
 			throw new GenericChanllengeException(ChanllengeConstants.SAME_ACCT);
@@ -89,12 +63,39 @@ public class AccountsService {
 		if (fromAccount.getBalance().subtract(model.getAmount()).compareTo(BigDecimal.ZERO) < 0) {
 			throw new GenericChanllengeException(ChanllengeConstants.ACCT_END_UP_NEGATIVE);
 		}
+		// Deducting amount from account and call update account.
+		updateFromAccount(fromAccount, model.getAmount());
+		this.accountsRepository.updateAccount(fromAccount);
+		// Deducting amount to account and call update account.
+		updateToAccount(toAccount, model.getAmount());
+		this.accountsRepository.updateAccount(toAccount);
+		// Send notifications between accounts.
+		notifyAccounts(fromAccount, toAccount, model.getAmount());
+		return Boolean.TRUE;
+	}
+
+	private void updateFromAccount(Account fromAccount, BigDecimal amount) {
+		fromAccount.getLock().lock();
+		try {
+			fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+		} finally {
+			fromAccount.getLock().unlock();
+		}
+	}
+
+	private void updateToAccount(Account toAccount, BigDecimal amount) {
+		toAccount.getLock().lock();
+		try {
+			toAccount.setBalance(toAccount.getBalance().add(amount));
+		} finally {
+			toAccount.getLock().unlock();
+		}
 	}
 
 	private void notifyAccounts(Account fromAccount, Account toAccount, BigDecimal amount) {
-		//Send notification to source account
+		// Send notification to source account
 		notificationService.notifyAboutTransfer(fromAccount, amount + " Amount Transferred Sucessfully");
-		//send notification to destination account
+		// send notification to destination account
 		notificationService.notifyAboutTransfer(toAccount, amount + " Amount Received");
 	}
 
