@@ -38,4 +38,11 @@ public class AccountsRepositoryInMemory implements AccountsRepository {
 		accounts.put(account.getAccountId(), account);
 	}
 
+	@Override
+	public void updateAccounts(Account fromAccount, Account toAccount){
+		//updating accounts with new balances.
+		accounts.put(fromAccount.getAccountId(), fromAccount);
+		accounts.put(toAccount.getAccountId(), toAccount);
+	}
+
 }

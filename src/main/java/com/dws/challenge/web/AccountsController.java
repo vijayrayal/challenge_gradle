@@ -57,10 +57,8 @@ public class AccountsController {
 	@PostMapping(value = "/transfer")
 	public ResponseEntity<Boolean> transferAmount(@RequestBody TransferAccountModel model) {
 		log.info("Transfer Accounts. {}", model);
-		// validate model data and
-		// call transfer amount service
+		// validate model data and transfer amounts service
 		if (accountsService.validateTransferAmountAndNotifyAccounts(model)) {
-			// Sending notification to from Account and to account via notification service.
 			return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
 		}
 		return new ResponseEntity<>(Boolean.FALSE, HttpStatus.OK);

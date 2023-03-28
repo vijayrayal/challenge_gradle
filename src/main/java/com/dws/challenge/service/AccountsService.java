@@ -63,15 +63,19 @@ public class AccountsService {
 		if (fromAccount.getBalance().subtract(model.getAmount()).compareTo(BigDecimal.ZERO) < 0) {
 			throw new GenericChanllengeException(ChanllengeConstants.ACCT_END_UP_NEGATIVE);
 		}
-		// Deducting amount from account and call update account.
-		updateFromAccount(fromAccount, model.getAmount());
-		this.accountsRepository.updateAccount(fromAccount);
-		// Deducting amount to account and call update account.
-		updateToAccount(toAccount, model.getAmount());
-		this.accountsRepository.updateAccount(toAccount);
-		// Send notifications between accounts.
-		notifyAccounts(fromAccount, toAccount, model.getAmount());
-		return Boolean.TRUE;
+		try {
+			// Deducting amount from account and call update account.
+			updateFromAccount(fromAccount, model.getAmount());
+			// Deducting amount to account and call update account.
+			updateToAccount(toAccount, model.getAmount());
+			// Update Accounts with new balance.
+			this.accountsRepository.updateAccounts(fromAccount, toAccount);
+			// Send notifications between accounts.
+			notifyAccounts(fromAccount, toAccount, model.getAmount());
+			return Boolean.TRUE;
+		} catch (Exception e) {
+			throw new GenericChanllengeException(ChanllengeConstants.TRANSFER_ERROR);
+		}
 	}
 
 	private void updateFromAccount(Account fromAccount, BigDecimal amount) {

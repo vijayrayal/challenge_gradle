@@ -9,5 +9,7 @@ public class ChanllengeConstants {
 	public static String ACCT_END_UP_NEGATIVE = "Source Account End up with Negative Balance";
 	
 	public static String SAME_ACCT = "From Account and To Account are same";
+	
+	public static String TRANSFER_ERROR = "Transfer error";
 
 }

@@ -1,7 +1,5 @@
 package com.dws.challenge.repository;
 
-import java.math.BigDecimal;
-
 import com.dws.challenge.domain.Account;
 import com.dws.challenge.exception.DuplicateAccountIdException;
 
@@ -14,4 +12,6 @@ public interface AccountsRepository {
   void updateAccount(Account account);
   
   void clearAccounts();
+  
+  void updateAccounts(Account fromAccount,Account toAccount);
 }
